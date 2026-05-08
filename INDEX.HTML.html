@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Distribuidor de Casos</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161922;
+    --surface2: #1e2330;
+    --border: #2a3045;
+    --accent: #00e5a0;
+    --accent2: #0077ff;
+    --warn: #ff6b35;
+    --text: #e8ecf5;
+    --muted: #6b7694;
+    --card-shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    min-height: 100vh;
+    padding: 32px 24px;
+    background-image:
+      radial-gradient(ellipse 60% 40% at 80% 10%, rgba(0,119,255,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 50% at 10% 80%, rgba(0,229,160,0.06) 0%, transparent 60%);
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  header h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    letter-spacing: -0.5px;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  header h1 span { color: var(--accent); }
+
+  header p {
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 300;
+  }
+
+  .layout {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  @media (max-width: 760px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  /* ── Painel Esquerdo ── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--card-shadow);
+  }
+
+  .panel-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  /* Adicionar atendente */
+  .add-agent {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .add-agent input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .add-agent input:focus { border-color: var(--accent); }
+  .add-agent input::placeholder { color: var(--muted); }
+
+  .btn {
+    cursor: pointer;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+    transition: all 0.18s;
+  }
+
+  .btn-icon {
+    background: var(--accent);
+    color: #0d0f14;
+    padding: 10px 14px;
+    font-size: 1.1rem;
+  }
+  .btn-icon:hover { background: #00ffb3; transform: scale(1.05); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0d0f14;
+    padding: 14px 20px;
+    width: 100%;
+    font-size: 0.82rem;
+    letter-spacing: 0.5px;
+    margin-top: 8px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-primary:hover { background: #00ffb3; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,229,160,0.25); }
+  .btn-primary:active { transform: translateY(0); }
+
+  /* Próximo atendente */
+  .next-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .next-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .next-info small {
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  .next-info strong {
+    display: block;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 2px;
+  }
+
+  .next-info .cases-badge {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 0.7rem;
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .no-next {
+    color: var(--muted);
+    font-size: 0.82rem;
+    text-align: center;
+    padding: 12px;
+  }
+
+  /* ── Painel Direito ── */
+  .agents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  .agent-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: var(--card-shadow);
+    transition: border-color 0.2s, transform 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .agent-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .agent-card.is-next {
+    border-color: var(--accent);
+  }
+  .agent-card.is-next::before { opacity: 1; }
+
+  .agent-card.unavailable {
+    opacity: 0.5;
+  }
+
+  .card-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .agent-name {
+    font-weight: 600;
+    font-size: 0.92rem;
+    margin-bottom: 2px;
+  }
+
+  .status-dot {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.68rem;
+    color: var(--muted);
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+  }
+  .dot.available { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+  .dot.busy { background: var(--warn); box-shadow: 0 0 6px var(--warn); }
+
+  .cases-count {
+    font-family: 'Space Mono', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .cases-label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .btn-sm {
+    flex: 1;
+    padding: 8px 6px;
+    font-size: 0.68rem;
+    border-radius: 8px;
+    letter-spacing: 0.3px;
+    text-align: center;
+  }
+
+  .btn-resolve {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--accent);
+  }
+  .btn-resolve:hover { border-color: var(--accent); background: rgba(0,229,160,0.06); }
+  .btn-resolve:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .btn-toggle {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .btn-toggle:hover { border-color: var(--warn); color: var(--warn); }
+
+  .btn-remove {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.18s;
+    font-family: 'Space Mono', monospace;
+  }
+  .btn-remove:hover { border-color: #ff4d4d; color: #ff4d4d; }
+
+  .next-tag {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: var(--accent);
+    color: #0d0f14;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+  }
+
+  .empty-state {
+    color: var(--muted);
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 40px 20px;
+    grid-column: 1 / -1;
+  }
+
+  /* Toast */
+  #toast {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    background: var(--surface2);
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-size: 0.82rem;
+    color: var(--text);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(.34,1.56,.64,1);
+    z-index: 999;
+    max-width: 280px;
+  }
+
+  #toast.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  #toast strong { color: var(--accent); }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 16px;
+    flex: 1;
+    min-width: 80px;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .stat-lbl {
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  /* History log */
+  .history {
+    margin-top: 20px;
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+  }
+
+  .history-list {
+    max-height: 160px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .history-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.78rem;
+    color: var(--muted);
+    animation: slideIn 0.3s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .history-item:last-child { border-bottom: none; }
+
+  .history-time {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    flex-shrink: 0;
+    color: var(--border);
+  }
+
+  .history-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+  .history-dot.assigned { background: var(--accent); }
+  .history-dot.resolved { background: var(--warn); }
+
+  .pulse {
+    animation: pulse 0.4s ease;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.12); }
+    100% { transform: scale(1); }
+  }
+
+  /* ── Distribuir com número ── */
+  .distribute-section {
+    margin-top: 8px;
+  }
+
+  .case-input-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .case-input-row input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s;
+    letter-spacing: 1px;
+  }
+  .case-input-row input:focus { border-color: var(--accent2); }
+  .case-input-row input::placeholder { color: var(--muted); font-family: 'Sora', sans-serif; letter-spacing: 0; }
+
+  /* ── Tabela de casos ── */
+  .table-section {
+    max-width: 1100px;
+    margin: 28px auto 0;
+  }
+
+  .table-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--card-shadow);
+  }
+
+  .table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .table-search {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 14px;
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    font-size: 0.82rem;
+    outline: none;
+    width: 220px;
+    transition: border-color 0.2s;
+  }
+  .table-search:focus { border-color: var(--accent2); }
+  .table-search::placeholder { color: var(--muted); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead tr {
+    border-bottom: 2px solid var(--border);
+  }
+
+  th {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 14px;
+    text-align: left;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  th:hover { color: var(--text); }
+  th .sort-icon { margin-left: 4px; opacity: 0.4; }
+  th.sorted .sort-icon { opacity: 1; color: var(--accent); }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+
+  td {
+    padding: 12px 14px;
+    font-size: 0.83rem;
+    vertical-align: middle;
+  }
+
+  .td-case {
+    font-family: 'Space Mono', monospace;
+    color: var(--accent2);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .td-agent {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .td-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 0.65rem;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .td-time {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  .badge-open {
+    display: inline-block;
+    background: rgba(0,229,160,0.12);
+    color: var(--accent);
+    border: 1px solid rgba(0,229,160,0.3);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.68rem;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-closed {
+    display: inline-block;
+    background: rgba(107,118,148,0.12);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.68rem;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-close-case {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--warn);
+    border-radius: 7px;
+    padding: 5px 10px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+    transition: all 0.18s;
+  }
+  .btn-close-case:hover { border-color: var(--warn); background: rgba(255,107,53,0.08); }
+  .btn-close-case:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .table-empty {
+    text-align: center;
+    padding: 40px;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚡ Distribuidor de <span>Casos</span></h1>
+  <p>Distribuição inteligente por menor carga de trabalho</p>
+</header>
+
+<div class="layout">
+  <!-- Painel Esquerdo -->
+  <div>
+    <div class="panel">
+      <div class="panel-title">➕ Adicionar Atendente</div>
+      <div class="add-agent">
+        <input type="text" id="agentInput" placeholder="Nome do atendente..." maxlength="30" />
+        <button class="btn btn-icon" onclick="addAgent()">+</button>
+      </div>
+
+      <div class="panel-title">🎯 Próximo a Receber</div>
+      <div id="nextBox" class="next-box">
+        <div class="no-next">Nenhum atendente disponível</div>
+      </div>
+
+      <div class="distribute-section">
+        <div class="case-input-row">
+          <input type="text" id="caseNumberInput" placeholder="Nº do caso (ex: 00123)" maxlength="20" />
+        </div>
+        <button class="btn btn-primary" onclick="distributeCase()">
+          <span>📋</span> Distribuir Novo Caso
+        </button>
+      </div>
+
+      <div class="history" id="historySection" style="display:none">
+        <div class="panel-title" style="margin-bottom:12px">📜 Histórico</div>
+        <div class="history-list" id="historyList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Painel Direito -->
+  <div>
+    <div class="stats-bar" id="statsBar" style="display:none">
+      <div class="stat">
+        <div class="stat-val" id="statTotal">0</div>
+        <div class="stat-lbl">Atendentes</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" id="statAvail">0</div>
+        <div class="stat-lbl">Disponíveis</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" id="statCases">0</div>
+        <div class="stat-lbl">Casos Abertos</div>
+      </div>
+    </div>
+
+    <div class="agents-grid" id="agentsGrid">
+      <div class="empty-state">Adicione atendentes para começar 👆</div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabela de Casos -->
+<div class="table-section">
+  <div class="table-panel" id="tablePanel" style="display:none">
+    <div class="table-header">
+      <div class="panel-title" style="margin:0">📊 Casos em Andamento</div>
+      <input type="text" class="table-search" id="tableSearch" placeholder="🔍 Buscar caso ou atendente..." oninput="renderTable()" />
+    </div>
+    <div id="tableContainer">
+      <div class="table-empty">Nenhum caso registrado ainda.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const COLORS = [
+    ['#0077ff','#00e5a0'],
+    ['#7c3aed','#06b6d4'],
+    ['#ff6b35','#ffd700'],
+    ['#e11d48','#f97316'],
+    ['#059669','#0ea5e9'],
+    ['#7e22ce','#ec4899'],
+    ['#b45309','#84cc16'],
+    ['#0e7490','#a855f7'],
+  ];
+
+  let agents = [];
+  let history = [];
+  let caseRecords = [];
+  let colorIdx = 0;
+  let sortCol = 'time';
+  let sortAsc = false;
+
+  function getInitials(name) {
+    return name.trim().split(' ').slice(0,2).map(w => w[0].toUpperCase()).join('');
+  }
+
+  function getColor(idx) {
+    return COLORS[idx % COLORS.length];
+  }
+
+  function addAgent() {
+    const input = document.getElementById('agentInput');
+    const name = input.value.trim();
+    if (!name) return;
+    if (agents.find(a => a.name.toLowerCase() === name.toLowerCase())) {
+      showToast(`<strong>${name}</strong> já está na lista!`);
+      return;
+    }
+    agents.push({ id: Date.now(), name, cases: 0, available: true, colorIdx: colorIdx++ });
+    input.value = '';
+    render();
+    showToast(`<strong>${name}</strong> adicionado!`);
+  }
+
+  function removeAgent(id) {
+    agents = agents.filter(a => a.id !== id);
+    render();
+  }
+
+  function toggleAvailable(id) {
+    const a = agents.find(a => a.id === id);
+    if (!a) return;
+    a.available = !a.available;
+    render();
+  }
+
+  function resolveCase(id) {
+    const a = agents.find(a => a.id === id);
+    if (!a || a.cases <= 0) return;
+    a.cases--;
+    // close the oldest open case for this agent
+    const rec = [...caseRecords].reverse().find(c => c.agentId === id && c.status === 'open');
+    if (rec) rec.status = 'closed';
+    addHistory(`Caso resolvido por <strong>${a.name}</strong>`, 'resolved');
+    render();
+    showToast(`✅ Caso encerrado para <strong>${a.name}</strong>`);
+  }
+
+  function closeCaseById(caseId) {
+    const rec = caseRecords.find(c => c.id === caseId);
+    if (!rec || rec.status === 'closed') return;
+    rec.status = 'closed';
+    const a = agents.find(a => a.id === rec.agentId);
+    if (a && a.cases > 0) a.cases--;
+    addHistory(`Caso <strong>${rec.caseNumber}</strong> encerrado`, 'resolved');
+    render();
+    showToast(`✅ Caso <strong>${rec.caseNumber}</strong> encerrado`);
+  }
+
+  function getNext() {
+    const available = agents.filter(a => a.available);
+    if (!available.length) return null;
+    return available.sort((a, b) => {
+      if (a.cases !== b.cases) return a.cases - b.cases;
+      return a.name.localeCompare(b.name);
+    })[0];
+  }
+
+  function distributeCase() {
+    const next = getNext();
+    if (!next) {
+      showToast('⚠️ Nenhum atendente disponível!');
+      return;
+    }
+    const caseInput = document.getElementById('caseNumberInput');
+    const caseNumber = caseInput.value.trim() || `#${String(caseRecords.length + 1).padStart(5,'0')}`;
+    // Check duplicate open case number
+    if (caseRecords.find(c => c.caseNumber === caseNumber && c.status === 'open')) {
+      showToast(`⚠️ Caso <strong>${caseNumber}</strong> já está em aberto!`);
+      return;
+    }
+    next.cases++;
+    const now = new Date();
+    caseRecords.unshift({
+      id: Date.now(),
+      caseNumber,
+      agentId: next.id,
+      agentName: next.name,
+      agentColorIdx: next.colorIdx,
+      time: now,
+      timeStr: now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      dateStr: now.toLocaleDateString('pt-BR'),
+      status: 'open'
+    });
+    caseInput.value = '';
+    addHistory(`Caso <strong>${caseNumber}</strong> → <strong>${next.name}</strong>`, 'assigned');
+    render();
+    showToast(`📋 Caso <strong>${caseNumber}</strong> para <strong>${next.name}</strong>`);
+
+    setTimeout(() => {
+      const card = document.getElementById('card-' + next.id);
+      if (card) {
+        const num = card.querySelector('.cases-count');
+        if (num) { num.classList.remove('pulse'); void num.offsetWidth; num.classList.add('pulse'); }
+      }
+    }, 50);
+  }
+
+  function addHistory(msg, type) {
+    const now = new Date();
+    const time = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    history.unshift({ msg, type, time });
+    if (history.length > 20) history.pop();
+  }
+
+  function render() {
+    renderNextBox();
+    renderGrid();
+    renderStats();
+    renderHistory();
+    renderTable();
+  }
+
+  function setSort(col) {
+    if (sortCol === col) sortAsc = !sortAsc;
+    else { sortCol = col; sortAsc = true; }
+    renderTable();
+  }
+
+  function renderTable() {
+    const panel = document.getElementById('tablePanel');
+    const container = document.getElementById('tableContainer');
+    if (!caseRecords.length) { panel.style.display = 'none'; return; }
+    panel.style.display = 'block';
+
+    const q = (document.getElementById('tableSearch').value || '').toLowerCase();
+    let rows = caseRecords.filter(c =>
+      !q || c.caseNumber.toLowerCase().includes(q) || c.agentName.toLowerCase().includes(q)
+    );
+
+    rows.sort((a, b) => {
+      let va, vb;
+      if (sortCol === 'case') { va = a.caseNumber; vb = b.caseNumber; }
+      else if (sortCol === 'agent') { va = a.agentName; vb = b.agentName; }
+      else if (sortCol === 'status') { va = a.status; vb = b.status; }
+      else { va = a.time; vb = b.time; }
+      if (va < vb) return sortAsc ? -1 : 1;
+      if (va > vb) return sortAsc ? 1 : -1;
+      return 0;
+    });
+
+    const icon = sortAsc ? '▲' : '▼';
+    const si = col => `<span class="sort-icon">${sortCol === col ? icon : '↕'}</span>`;
+
+    if (!rows.length) {
+      container.innerHTML = '<div class="table-empty">Nenhum resultado encontrado.</div>';
+      return;
+    }
+
+    container.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th class="${sortCol==='case'?'sorted':''}" onclick="setSort('case')">Nº do Caso ${si('case')}</th>
+            <th class="${sortCol==='agent'?'sorted':''}" onclick="setSort('agent')">Atendente ${si('agent')}</th>
+            <th class="${sortCol==='time'?'sorted':''}" onclick="setSort('time')">Recebido em ${si('time')}</th>
+            <th class="${sortCol==='status'?'sorted':''}" onclick="setSort('status')">Status ${si('status')}</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(c => {
+            const [cc1, cc2] = getColor(c.agentColorIdx);
+            return `
+            <tr>
+              <td class="td-case">${c.caseNumber}</td>
+              <td>
+                <div class="td-agent">
+                  <div class="td-avatar" style="background:linear-gradient(135deg,${cc1},${cc2})">${getInitials(c.agentName)}</div>
+                  ${c.agentName}
+                </div>
+              </td>
+              <td class="td-time">${c.dateStr} ${c.timeStr}</td>
+              <td>${c.status === 'open' ? '<span class="badge-open">● Aberto</span>' : '<span class="badge-closed">✓ Encerrado</span>'}</td>
+              <td>
+                <button class="btn-close-case" onclick="closeCaseById(${c.id})" ${c.status==='closed'?'disabled':''}>
+                  ${c.status === 'open' ? '✓ Encerrar' : 'Encerrado'}
+                </button>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function renderNextBox() {
+    const box = document.getElementById('nextBox');
+    const next = getNext();
+    if (!next) {
+      box.innerHTML = '<div class="no-next">Nenhum atendente disponível</div>';
+      return;
+    }
+    const [c1, c2] = getColor(next.colorIdx);
+    box.innerHTML = `
+      <div class="next-avatar" style="background:linear-gradient(135deg,${c1},${c2})">${getInitials(next.name)}</div>
+      <div class="next-info">
+        <small>Próximo na fila</small>
+        <strong>${next.name}</strong>
+        <span class="cases-badge">${next.cases} caso${next.cases !== 1 ? 's' : ''} em aberto</span>
+      </div>
+    `;
+  }
+
+  function renderGrid() {
+    const grid = document.getElementById('agentsGrid');
+    if (!agents.length) {
+      grid.innerHTML = '<div class="empty-state">Adicione atendentes para começar 👆</div>';
+      return;
+    }
+    const next = getNext();
+    grid.innerHTML = agents.map(a => {
+      const isNext = next && next.id === a.id;
+      const [c1, c2] = getColor(a.colorIdx);
+      const statusLabel = a.available ? 'Disponível' : 'Indisponível';
+      const dotClass = a.available ? (a.cases > 0 ? 'busy' : 'available') : '';
+      return `
+        <div class="agent-card ${isNext ? 'is-next' : ''} ${!a.available ? 'unavailable' : ''}" id="card-${a.id}">
+          ${isNext ? '<div class="next-tag">PRÓXIMO</div>' : ''}
+          <div class="card-top">
+            <div class="avatar" style="background:linear-gradient(135deg,${c1},${c2})">${getInitials(a.name)}</div>
+            <div>
+              <div class="agent-name">${a.name}</div>
+              <div class="status-dot"><span class="dot ${dotClass}"></span>${statusLabel}</div>
+            </div>
+          </div>
+          <div class="cases-count">${a.cases.toString().padStart(2,'0')}</div>
+          <div class="cases-label">caso${a.cases !== 1 ? 's' : ''} em aberto</div>
+          <div class="card-actions">
+            <button class="btn btn-sm btn-resolve" onclick="resolveCase(${a.id})" ${a.cases === 0 ? 'disabled' : ''}>✓ Resolver</button>
+            <button class="btn btn-sm btn-toggle" onclick="toggleAvailable(${a.id})">${a.available ? '⏸ Pausar' : '▶ Ativar'}</button>
+            <button class="btn-remove" onclick="removeAgent(${a.id})">✕</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderStats() {
+    const bar = document.getElementById('statsBar');
+    if (!agents.length) { bar.style.display = 'none'; return; }
+    bar.style.display = 'flex';
+    document.getElementById('statTotal').textContent = agents.length;
+    document.getElementById('statAvail').textContent = agents.filter(a => a.available).length;
+    document.getElementById('statCases').textContent = agents.reduce((s, a) => s + a.cases, 0);
+  }
+
+  function renderHistory() {
+    const section = document.getElementById('historySection');
+    const list = document.getElementById('historyList');
+    if (!history.length) { section.style.display = 'none'; return; }
+    section.style.display = 'block';
+    list.innerHTML = history.map(h => `
+      <div class="history-item">
+        <span class="history-time">${h.time}</span>
+        <span class="history-dot ${h.type}"></span>
+        <span>${h.msg}</span>
+      </div>
+    `).join('');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.innerHTML = msg;
+    t.classList.add('show');
+    clearTimeout(t._timeout);
+    t._timeout = setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // Enter to add agent
+  document.getElementById('agentInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addAgent();
+  });
+  // Enter to distribute case
+  document.getElementById('caseNumberInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') distributeCase();
+  });
+
+  // Seed sample agents for demo
+  ['Ana Silva', 'Bruno Costa', 'Carla Dias'].forEach(name => {
+    agents.push({ id: Date.now() + Math.random(), name, cases: 0, available: true, colorIdx: colorIdx++ });
+  });
+  render();
+</script>
+</body>
+</html>

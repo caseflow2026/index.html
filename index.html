@@ -458,13 +458,36 @@
   window.updateAgentName = async function(caseFirestoreId, newName) {
     newName = newName.trim();
     if (!newName) return;
-    await updateDoc(doc(db, 'cases', caseFirestoreId), { agentName: newName });
+    const rec = caseRecords.find(c => c.firestoreId === caseFirestoreId);
+    if (!rec || rec.status !== 'open') {
+      // If case is closed, just update the name
+      await updateDoc(doc(db, 'cases', caseFirestoreId), { agentName: newName });
+      showToast(`✏️ Atendente atualizado para <strong>${newName}</strong>`);
+      return;
+    }
+    const oldAgent = agents.find(a => a.firestoreId === rec.agentId);
+    const newAgent = agents.find(a => a.name.toLowerCase() === newName.toLowerCase());
+
+    // Update case with new agent info
+    const updates = { agentName: newName };
+    if (newAgent) updates.agentId = newAgent.firestoreId;
+    await updateDoc(doc(db, 'cases', caseFirestoreId), updates);
+
+    // Decrement old agent counter
+    if (oldAgent && oldAgent.cases > 0) {
+      await updateDoc(doc(db, 'agents', oldAgent.firestoreId), { cases: Math.max(0, oldAgent.cases - 1) });
+    }
+    // Increment new agent counter (if found in agents list)
+    if (newAgent) {
+      await updateDoc(doc(db, 'agents', newAgent.firestoreId), { cases: (newAgent.cases || 0) + 1 });
+    }
+
     await addDoc(collection(db, 'history'), {
-      msg: `Atendente do caso atualizado para <strong>${newName}</strong>`,
+      msg: `Caso <strong>${rec.caseNumber}</strong> transferido para <strong>${newName}</strong>`,
       type: 'assigned', time: serverTimestamp(),
       timeStr: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     });
-    showToast(`✏️ Atendente atualizado para <strong>${newName}</strong>`);
+    showToast(`✏️ Caso transferido para <strong>${newName}</strong>`);
   };
 
   function render() { renderNextBox(); renderGrid(); renderStats(); }
@@ -564,6 +587,8 @@
     });
 
     rows.sort((a, b) => {
+      // Always open cases first
+      if (a.status !== b.status) return a.status === 'open' ? -1 : 1;
       let va, vb;
       if (sortCol==='case'){va=a.caseNumber;vb=b.caseNumber;}
       else if(sortCol==='agent'){va=a.agentName;vb=b.agentName;}
